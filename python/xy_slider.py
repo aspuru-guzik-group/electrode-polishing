@@ -1,96 +1,72 @@
 from serial import Serial
 import struct
-import random
+import time
+import numpy as np
 
-
-pulses0 = [
-    [0,0,0,0],
-    [1,1,440,440],
-    [0,0,440,440],
-
-    [1, 1, 440, 466],
-    [0, 0, 440, 466],
-
-    [1, 1, 440, 493],
-    [0, 0, 440, 493],
-
-    [1, 1, 440, 523],
-    [0, 0, 440, 523],
-
-    [1, 1, 440, 554],
-    [0, 0, 440, 554],
-
-    [1, 1, 440, 587],
-    [0, 0, 440, 587],
-
-    [1, 1, 440, 622],
-    [0, 0, 440, 622],
-
-    [1, 1, 440, 659],
-    [0, 0, 440, 659],
-
-    [1, 1, 440, 698],
-    [0, 0, 440, 698],
-
-    [1, 1, 440, 739],
-    [0, 0, 440, 739],
-
-    [1, 1, 440, 783],
-    [0, 0, 440, 783],
-
-    [1, 1, 440, 830],
-    [0, 0, 440, 830],
-
-    [1, 1, 440, 880],
-    [0, 0, 440, 880],
-
-    # [0,0,493,493],
-    # [0,1,4000, 300],
-    # [1,0,4000,300]
-]
-
-# dev = Serial(port = "COM3", baudrate=9600, timeout=2)
 
 def run_slider(pulses):
-    with Serial(port = "COM3", baudrate=9600, timeout=2) as dev:
+    with Serial(port = "/dev/ttyACM0", baudrate=9600, timeout=2) as dev:
+        # This is necessary to start actual communication.
+        dev.write("")
+        dev.read()
         for pulse in pulses:
             cmd = struct.pack('>bbhh', pulse[0], pulse[1], pulse[2], pulse[3])
             dev.write(cmd)
-            rtn = dev.read()
-            print(rtn)
+            while dev.inWaiting() == 0:
+                time.sleep(0.1)
+            rtn = dev.readline()
+            print("Received: {}".format(rtn))
 
 
-pulses = [[0,0,0,0]]
-x0 = 0
-y0 = 0
-for i in range (0, 20):
-    delta_x = random.randint(1, 2000)
-    delta_y = random.randint(1, 2000)
-    if x0 + delta_x > 5000:
-        x_dir = 0
-    elif x0 + delta_x < -5000:
-        x_dir = 1
+cur_x = 0
+cur_y = 0
+def goto_pose(goal_x, goal_y):
+    global cur_x, cur_y
+    if cur_x >= goal_x:
+        dir_x = 0
     else:
-        x_dir = random.randint(0, 1)
-    if y0 + delta_y > 5000:
-        y_dir = 0
-    elif y0 + delta_y < -5000:
-        y_dir = 1
+        dir_x = 1
+    if cur_y >= goal_y:
+        dir_y = 0
     else:
-        y_dir = random.randint(0, 1)
-    if x_dir == 0:
-        x0 -= delta_x
-    else:
-        x0 += delta_x
-    if y_dir == 0:
-        y0 -= delta_y
-    else:
-        y0 += delta_y
-    pulses.append([x_dir, y_dir, delta_x, delta_y])
+        dir_y = 1
+    pulse = [dir_y, dir_x, abs(goal_y - cur_y), abs(goal_x - cur_x)]
+    cur_x = goal_x
+    cur_y = goal_y
+    return pulse
+
+# pulses = [[0, 1, 0, 1000]] # slider left (pen right)
+# pulses = [[0, 0, 0, 1000]] # slider right (pen left)
+# pulses = [[0, 0, 1000, 0]] # slider up (pen down)
+# pulses = [[1, 0, 1000, 0]] # slider down (pen up)
+
+
+x = 0
+y = 0
+r = 2000
+pulses = []
+N = 32
+
+for i in range(N+1):
+    t = 2 * np.pi * i / N
+    gx = int(-r * np.sin(t))
+    gy = int(r * (1.0 - np.cos(t)))
+    print(gx, gy)
+    pulse = goto_pose(gx, gy)
+    pulses.append(pulse)
+    x = gx
+    y = gy
+
+for i in range(N+1):
+    t = 2 * np.pi * i / N
+    gx = int(-r * np.sin(t))
+    gy = int(r * (np.cos(t) - 1.0))
+    print(gx, gy)
+    pulse = goto_pose(gx, gy)
+    pulses.append(pulse)
+    x = gx
+    y = gy
 
 print(pulses)
 
 run_slider(pulses=pulses)
-
-
-# run_slider(pulses=[[0,0,0,0],[1, 1, 500, 200]])
