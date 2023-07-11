@@ -4,8 +4,6 @@ const char directPin0 = 3;
 const char directPin1 = 6;
 const int swPin0 = 8;
 const int swPin1 = 9;
-int x = 0;
-int y = 0;
 
 int readShort() {
   // Read a short int from serial port, big endian. 
@@ -52,8 +50,8 @@ void sendOnePulse(char pulsePin) {
 void sendPulses(int numPulse0, int numPulse1) {
   int countPulse0 = 0;
   int countPulse1 = 0;
-  long delayPulse0 = 1000000 / numPulse0 - 10;
-  long delayPulse1 = 1000000 / numPulse1 - 10;
+  long delayPulse0 = 100000 / numPulse0 - 10;
+  long delayPulse1 = 100000 / numPulse1 - 10;
   while (countPulse0 < numPulse0 || countPulse1 < numPulse1) {
     long timing0 = countPulse0 * (delayPulse0 + 10);
     long timing1 = countPulse1 * (delayPulse1 + 10) +20;
@@ -88,19 +86,17 @@ void sendPulses(int numPulse0, int numPulse1) {
   }
 }
 
-
 void setOneDirect(char directPin, char level) {
   if (directPin == 0) {
     digitalWrite(directPin0, level);
   } else if (directPin == 1) {
     digitalWrite(directPin1, level);
-    }
+  }
+  delayMicroseconds(10);
 }
 
 void resetPosition() {
-  Serial.println("Reset position...");
   // Go left until switch is pushed
-  Serial.println("Resetting x");
   setOneDirect(1, HIGH);
   while (digitalRead(swPin1) == HIGH) {
     sendOnePulse(1);
@@ -112,10 +108,8 @@ void resetPosition() {
     sendOnePulse(1);
     delayMicroseconds(1000);
   }
-  x = 0;
 
   // Go down until switch is pushed
-  Serial.println("Resetting y");
   setOneDirect(0, HIGH);
   while (digitalRead(swPin0) == HIGH) {
     sendOnePulse(0);
@@ -127,39 +121,6 @@ void resetPosition() {
     sendOnePulse(0);
     delayMicroseconds(1000);
   }
-  y = 0;
-  Serial.println("Reset done.");
-}
-
-void gotoPosition(int goalx, int goaly) {
-  int dirx = 0;
-  int diry = 0;
-  if (x > goalx) {
-    setOneDirect(1, LOW);
-    dirx = -1;
-  } else {
-    setOneDirect(1, HIGH);
-    dirx = 1;
-  }
-  if (y > goaly) {
-    setOneDirect(0, LOW);
-    diry = -1;
-  } else {
-    setOneDirect(0, HIGH);
-    diry = 1;
-  }
-  while (x != goalx || y != goaly) {
-    if (x != goalx) {
-      sendOnePulse(1);
-      x += dirx;
-    }
-    if (y != goaly) {
-      sendOnePulse(0);
-      y += diry;
-    }
-    delayMicroseconds(1000);
-  }
-  Serial.println("x: " + String(x) + ", y: " + String(y));
 }
 
 void setup() {
@@ -171,19 +132,25 @@ void setup() {
   pinMode(directPin1, OUTPUT);
   pinMode(swPin0, INPUT_PULLUP);
   pinMode(swPin1, INPUT_PULLUP);
-  resetPosition();
-}
-
-void drawEight() {
-  gotoPosition(-1000, 1000);
-  gotoPosition(0, 2000);
-  gotoPosition(1000, 1000);
-  gotoPosition(0, 0);
 }
 
 void loop() {
-  delay(1000);
-  gotoPosition(0, 2000);
-  delay(1000);
-  gotoPosition(0, -2000);
+  // put your main code here, to run repeatedly:
+  while (!Serial) {
+    continue;
+  }
+  char directMotor0 = readChar();
+  char directMotor1 = readChar();
+  int numPulseMotor0 = readShort();
+  int numPulseMotor1 = readShort();
+  if (directMotor0 == 2) {
+    resetPosition();
+    Serial.println("Reset done");
+  } else {
+    setOneDirect(0, directMotor0);
+    setOneDirect(1, directMotor1);
+    sendPulses(numPulseMotor0, numPulseMotor1);
+    Serial.println("[" + String((int)directMotor0) + ", " + String((int)directMotor1) + ", " 
+            + String(numPulseMotor0) + ", " + String(numPulseMotor1) + "]");
+  }
 }
