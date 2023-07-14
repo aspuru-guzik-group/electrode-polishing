@@ -189,6 +189,7 @@ void moveTwoSliders() {
   setOneDirect(0, directMotor0);
   setOneDirect(1, directMotor1);
   sendPulses(numPulseMotor0, numPulseMotor1);
+  Serial.write(0x00);
 }
 
 void resetPosition() {
@@ -217,6 +218,7 @@ void resetPosition() {
     sendOnePulse(0);
     delayMicroseconds(1000);
   }
+  Serial.write(0x00);
 }
 
 void setup() {
