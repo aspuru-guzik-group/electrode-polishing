@@ -39,13 +39,13 @@ void processBatch() {
     
     //if x has more steps, set the total time by it (step count * 1000us), otherwise do the same for y
     if (xCount > yCount) {
-      runTime = xCount * 1000;
-      xDelay = 1000;
+      runTime = xCount * 400;
+      xDelay = 400;
       yDelay = runTime / yCount;
     }
     else {
-      runTime = yCount * 1000;
-      yDelay = 1000;
+      runTime = yCount * 400;
+      yDelay = 400;
       xDelay = runTime / xCount;
     }
 
@@ -92,7 +92,7 @@ void resetPosition() {
       cont = true;
     }
     
-    delayMicroseconds(1000);
+    delayMicroseconds(200);
   }
 }
 

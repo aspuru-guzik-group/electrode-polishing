@@ -15,7 +15,7 @@ class Slider():
     serial = None
     timeout = None
 
-    def __init__(self,serial_port='/dev/ttyACM0',baudrate=9600,timeout=10):
+    def __init__(self,serial_port='/dev/ttyACM0',baudrate=9600,timeout=15):
         """
         Initalize Slider class with serial port and baudrate.
         The rest of the parameters such as parity are determined automatically
@@ -68,7 +68,7 @@ class Slider():
             pulses.extend(padding.tolist())
             
         #send each chunk of batch of commands
-        for i in range(0,len(pulses) - batch_size,batch_size):
+        for i in range(0,(len(pulses) - batch_size) + 1,batch_size):
             batch = bytearray()
             batch.extend('M'.encode('ascii')) #the message starts with M for movement command
             for j in range(i,i+batch_size):
