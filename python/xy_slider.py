@@ -56,7 +56,7 @@ class Slider():
     
     def run_batch(self,pulses):
         
-        batch_size = 15; #we have fixed 60 byte frame corresponding to 15 movement commands
+        batch_size = 63; #we have fixed 252 byte frame corresponding to 63 movement commands
         #each command is 4 bytes
         
         #pad with empty commands if necessary

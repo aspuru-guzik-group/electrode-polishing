@@ -1,5 +1,5 @@
 const unsigned long minUsDelay = 400; //minimum delay between motor pulses (us)
-const int inputSize = 60; //input size in bytes for batch
+const int inputSize = 252; //WARNING! Change HardwareSerial.h to have #define SERIAL_RX_BUFFER_SIZE 256
 
 const char pulsePinX = 2; //x
 const char pulsePinY = 5; //y
