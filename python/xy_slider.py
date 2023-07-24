@@ -1,5 +1,4 @@
 import serial
-import struct
 from time import sleep
 import logging
 import numpy as np
@@ -15,7 +14,7 @@ class Slider():
     serial = None
     timeout = None
 
-    def __init__(self,serial_port='/dev/ttyACM0',baudrate=9600,timeout=15):
+    def __init__(self,serial_port='/dev/ttyACM0',baudrate=115200,timeout=20):
         """
         Initalize Slider class with serial port and baudrate.
         The rest of the parameters such as parity are determined automatically
@@ -40,7 +39,7 @@ class Slider():
             logging.info('Connected to the slider.')
             return True
         except:
-            logging.critical('Could not connect to force sensor')
+            logging.critical('Could not connect to slider')
             return False
     
     def disconnect(self):
@@ -51,7 +50,7 @@ class Slider():
             self.serial.close()
         except:
             pass
-        logging.info('Disconnected from the force sensor.')
+        logging.info('Disconnected from the slider.')
         return True
     
     
@@ -75,6 +74,7 @@ class Slider():
                 batch.extend(np.int16(pulses[j][1] * pulses[j][3]).tobytes())
                 batch.extend(np.int16(pulses[j][0] * pulses[j][2]).tobytes())
             self.serial.write(batch)
+            self.serial.flushOutput()
             response = self.serial.readline()
             response = response.decode('ascii').strip()
             if response != "Batch Completed":
@@ -86,6 +86,7 @@ class Slider():
     
     def reset_slider(self):
         self.serial.write('R'.encode('ascii')) #the message is only "R" for position resetting command
+        self.serial.flushOutput()
         response = self.serial.readline()
         response = response.decode('ascii').strip()
         if response != "Homing Completed":
