@@ -35,9 +35,13 @@ class Slider():
         """
         try:
             self.serial = serial.Serial(port=self.serial_port,baudrate=self.baudrate,timeout=self.timeout);
-            sleep(3)
-            logging.info('Connected to the slider.')
-            return True
+            response = self.serial.readline().decode("ascii").strip()
+            if response == "Ready":
+                logging.info('Connected to the slider.')
+                return True
+            else:
+                logging.critical(f'Unexpected welcome message received: {response}')
+                return False
         except:
             logging.critical('Could not connect to slider')
             return False
@@ -150,7 +154,7 @@ if __name__ == "__main__":
 
     slider = Slider()
     slider.connect()
-    slider.reset_slider()
+    # slider.reset_slider()
     slider.run_batch(pulses)
-    slider.reset_slider()
+    # slider.reset_slider()
     slider.disconnect()

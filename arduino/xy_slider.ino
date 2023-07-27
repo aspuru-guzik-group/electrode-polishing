@@ -1,5 +1,7 @@
 const unsigned long minUsDelay = 400; //minimum delay between motor pulses (us)
-const int inputSize = 252; //WARNING! Change HardwareSerial.h to have #define SERIAL_RX_BUFFER_SIZE 256
+
+const int inputSize = SERIAL_RX_BUFFER_SIZE - 4; //WARNING! Ideally change HardwareSerial.h to have #define SERIAL_RX_BUFFER_SIZE 256 and this number must be multiple of 4
+byte inputBytes[inputSize+2];
 
 const char pulsePinX = 2; //x
 const char pulsePinY = 5; //y
@@ -7,8 +9,6 @@ const char directPinX = 3;
 const char directPinY = 6;
 const int swPinX = 8;
 const int swPinY = 9;
-
-byte inputBytes[inputSize+2];
 
 char jobType;
 int16_t temp = 0;
@@ -161,6 +161,7 @@ void setup() {
   pinMode(swPinY, INPUT_PULLUP);
   digitalWrite(pulsePinX, LOW);
   digitalWrite(pulsePinY, LOW);
+  Serial.println("Ready");
 }
 
 void loop() {
@@ -183,4 +184,3 @@ void loop() {
     }
   }
 }
-
